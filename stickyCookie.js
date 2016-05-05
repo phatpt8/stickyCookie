@@ -1,3 +1,6 @@
+/*
+*  source: https://github.com/phatpt8/stickyCookie
+* */
 var stickyCookie = function( options ) {
     var localStorage = window.localStorage;
     // avoid set new instance
@@ -9,29 +12,37 @@ var stickyCookie = function( options ) {
         default: {
             path: '/',
             expires: 10 * 24 * 3600,
-            domain: hostDomain
+            domain: typeof hostDomain !== 'undefined' ? hostDomain : document.domain
         }
     };
     var _self = this;
     var delay = 100;
 
-    this.get = function ( key ) {
+    this.get = function( key ) {
         return core( key )
     };
 
     this.set = function( key, value ) {
         if ( !getFromStored( key ) ) {
             core( key, value );
+        } else {
+            _self.update( key, value )
         }
 
         return this
     };
 
-    this.updateNwatch = function( key, value ) {
-        getFromStored( key, function( item, index ) {
+    this.update = function( key, value ) {
+        getFromStored( key, function( index, item ) {
             _self.stored.splice( index, 1 );
         } );
         saveToStored( key, value )
+    };
+    
+    this.watching = function( keys ) {
+        for ( var i= 0, arrLen = keys.length, key = keys[i]; i < arrLen; key = keys[++i] ) {
+            _self.update( key, _self._storeCookie( key ) )
+        }
     };
 
     this.stopItv = function() {
@@ -78,7 +89,7 @@ var stickyCookie = function( options ) {
     function getFromStored( key , callback ) {
         for ( var i= 0, storedLen = _self.stored.length, item = _self.stored[i]; i < storedLen; item = _self.stored[++i] ) {
             if ( item.key == key ) {
-                if ( callback ) return callback.call( _self, item, i );
+                if ( callback ) return callback.call( _self, i, item );
                 return item;
             }
         }
@@ -97,11 +108,11 @@ var stickyCookie = function( options ) {
                 return;
             }
 
-            watcher( function ( k, v ) {
+            watcher( function( k, v ) {
                 solveDiff( k, v )
             } );
 
-            delay += 5000;
+            delay += 3000;
             itv = setTimeout( worker, delay );
         };
         var itv = setTimeout( worker, delay );
@@ -112,7 +123,7 @@ var stickyCookie = function( options ) {
     function setCookie( cname, cvalue, opt ) {
         var d = new Date();
         d.setTime( d.getTime() + ( opt.expires || 24*60*60*1000 ) );
-        var expires = "expires="+ d.toUTCString();
+        var expires = ";expires="+ d.toUTCString();
         var cookieString = cname + "=" + cvalue;
         cookieString += opt.path ? ';path=' + opt.path : '';
         cookieString += opt.domain ? ';domain=' + opt.domain : '';
@@ -134,19 +145,13 @@ var stickyCookie = function( options ) {
     this._storeCookie = function( key, value ) {
         if ( value !== undefined ) {
             var opt = this.options[key] || this.options.default || {};
-            if ( typeof cookies != 'undefined' ) {
-                cookies( key, value, opt )
-            } else if ( typeof _ != 'undefined' && typeof _.cookies != 'undefined' ) {
-                _.cookies( key, value, opt )
-            } else {
-                setCookie( key, value, opt )
-            }
+            setCookie( key, value, opt )
         } else {
             return getFromString( key, document.cookie );
         }
     };
 
-    this._storeWinName = function ( key, value ) {
+    this._storeWinName = function( key, value ) {
         if ( value !== undefined ) {
             window.name = _replace( window.name, key, value );
         } else {
