@@ -27,7 +27,7 @@ var stickyCookie = function( options ) {
         return this
     };
 
-    this.update = function( key, value ) {
+    this.updateNwatch = function( key, value ) {
         getFromStored( key, function( item, index ) {
             _self.stored.splice( index, 1 );
         } );
