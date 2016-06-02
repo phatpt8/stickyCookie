@@ -2,7 +2,6 @@
 *  source: https://github.com/phatpt8/stickyCookie
 * */
 var stickyCookie = function( options ) {
-    var localStorage = window.localStorage;
     // avoid set new instance
     if( typeof stickyCookie.instance == 'object' ){ return stickyCookie.instance; }
 
@@ -11,12 +10,13 @@ var stickyCookie = function( options ) {
     this.options = options || {
         default: {
             path: '/',
-            expires: 10 * 24 * 3600,
+            expires: 10 * 24 * 3600 * 1000,
             domain: typeof hostDomain !== 'undefined' ? hostDomain : document.domain
         }
     };
     var _self = this;
     var delay = 100;
+    var localStorage = window.localStorage;
 
     this.get = function( key ) {
         return core( key )
@@ -36,12 +36,16 @@ var stickyCookie = function( options ) {
         getFromStored( key, function( index, item ) {
             _self.stored.splice( index, 1 );
         } );
-        saveToStored( key, value )
+        saveToStored( key, value );
+
+        return this
     };
     
-    this.watching = function( keys ) {
+    this.trace = function( keys ) {
+        if ( typeof keys == "string" ) { keys = keys.split(" "); }
+
         for ( var i= 0, arrLen = keys.length, key = keys[i]; i < arrLen; key = keys[++i] ) {
-            _self.update( key, _self._storeCookie( key ) )
+            typeof _self._storeCookie( key ) != "undefined" && _self.update( key, _self._storeCookie( key ) )
         }
     };
 
@@ -134,11 +138,13 @@ var stickyCookie = function( options ) {
 
     this._storeLS = function( key, value ) { // Store in Local Storage
         if ( localStorage ) {
-            if ( value !== undefined ) {
-                localStorage.setItem( key, value );
-            } else {
-                return localStorage.getItem( key )
-            }
+            try {
+                if ( value !== undefined ) {
+                    localStorage.setItem( key, value );
+                } else {
+                    return localStorage.getItem( key )
+                }
+            } catch ( e ) {}
         }
     };
 
@@ -200,4 +206,5 @@ var stickyCookie = function( options ) {
 
     // store instance
     stickyCookie.instance = this;
+    window.stickyCookie = stickyCookie;
 };
