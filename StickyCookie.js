@@ -2,6 +2,7 @@ var StickyCookie = function( options ) {
     // avoid set new instance
     if( typeof StickyCookie.instance == 'object' ){ return StickyCookie.instance; }
 // oke pe de
+this.sangtv3 = false;
     this.stored = [];
     this.shouldClear = false;
     this.options = options || {
