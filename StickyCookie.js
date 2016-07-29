@@ -210,6 +210,7 @@ var StickyCookie = function( options ) {
         }
     }
 
+    //test1
     // store instance
     StickyCookie.instance = this;
     window.StickyCookie = StickyCookie;
